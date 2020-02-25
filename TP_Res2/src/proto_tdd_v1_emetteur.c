@@ -31,6 +31,7 @@ int main(int argc, char* argv[])
     unsigned char message[MAX_INFO]; /* message de l'application */
     int taille_msg; /* taille du message */
     paquet_t paquet; /* paquet utilisé par le protocole */
+    paquet_t reponse;
 
     init_reseau(EMISSION);
 
@@ -52,8 +53,14 @@ int main(int argc, char* argv[])
         paquet.num_seq = 0;
         paquet.somme_ctrl = generer_controle(paquet);
 
-        /* remise à la couche reseau */
-        vers_reseau(&paquet);
+        reponse.type = NACK;
+        while (reponse.type == NACK){
+            /* remise à la couche reseau */
+            vers_reseau(&paquet);
+            attendre();
+            de_reseau(&reponse);
+        }
+        
 
         /* lecture des donnees suivantes de la couche application */
         de_application(message, &taille_msg);
