@@ -11,6 +11,18 @@
 #include "application.h"
 #include "couche_transport.h"
 #include "services_reseau.h"
+#include <stdbool.h>
+
+uint8_t generer_controle(paquet_t p){
+    uint8_t somme_ctrl = 0;
+    somme_ctrl ^= p.type;
+    somme_ctrl ^= p.num_seq;
+    somme_ctrl ^= p.lg_info;
+    for (int i=0; i<p.lg_info; i++){
+        somme_ctrl ^= p.info[i];
+    }
+    return somme_ctrl;
+}
 
 /* =============================== */
 /* Programme principal - émetteur  */
@@ -38,6 +50,8 @@ int main(int argc, char* argv[])
         }
         paquet.lg_info = taille_msg;
         paquet.type = DATA;
+        paquet.num_seq = 0;
+        paquet.somme_ctrl = generer_controle(paquet);
 
         /* remise à la couche reseau */
         vers_reseau(&paquet);
