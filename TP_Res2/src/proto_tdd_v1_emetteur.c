@@ -11,7 +11,6 @@
 #include "application.h"
 #include "couche_transport.h"
 #include "services_reseau.h"
-#include <stdbool.h>
 
 uint8_t generer_controle(paquet_t p){
     uint8_t somme_ctrl = 0;

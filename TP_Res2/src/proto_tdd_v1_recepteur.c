@@ -12,6 +12,17 @@
 #include "couche_transport.h"
 #include "services_reseau.h"
 
+int verifier_controle(paquet_t p){
+    p.somme_ctrl ^= p.type;
+    p.somme_ctrl ^= p.num_seq;
+    p.somme_ctrl ^= p.lg_info;
+    for (int i=0; i<p.lg_info; i++){
+        p.somme_ctrl ^= p.info[i];
+    }
+    return (p.somme_ctrl == 0);
+}
+
+
 /* =============================== */
 /* Programme principal - récepteur */
 /* =============================== */
@@ -35,6 +46,9 @@ int main(int argc, char* argv[])
         /* extraction des donnees du paquet recu */
         for (int i=0; i<paquet.lg_info; i++) {
             message[i] = paquet.info[i];
+        }
+        if (!verifier_controle(paquet)){
+            printf("[!] ERREUR\n");
         }
         /* remise des données à la couche application */
         fin = vers_application(message, paquet.lg_info);
