@@ -32,9 +32,8 @@ int main(int argc, char* argv[])
     paquet_t paquet; /* paquet utilisé par le protocole */
     paquet_t reponse;
     int fin = 0; /* condition d'arrêt */
-
     init_reseau(RECEPTION);
-
+    int verif_num = 0;
     printf("[TRP] Initialisation reseau : OK.\n");
     printf("[TRP] Debut execution protocole transport.\n");
 
@@ -42,6 +41,7 @@ int main(int argc, char* argv[])
     while ( !fin ) {
 
         // attendre(); /* optionnel ici car de_reseau() fct bloquante */
+
         de_reseau(&paquet);
 
         /* extraction des donnees du paquet recu */
@@ -50,15 +50,23 @@ int main(int argc, char* argv[])
         }
         if (!verifier_controle(paquet)){
             printf("[!] ERREUR\n");
-            /* reponse.type = NACK; */
-            /* On ne renvoie rien, car l'emetteur renverra le paquet au bout d'un certai délai */
+            reponse.type = ACK;
         }
         else {
+            if (paquet.num_seq != verif_num){
+            printf("[!] DOUBLON\n");
             reponse.type = ACK;
-            /* remise des données à la couche application */
-            fin = vers_application(message, paquet.lg_info);
+            /* On drop le paquet, mais on acquitte */
+            }
+            else {
+                reponse.type = ACK;
+                /* remise des données à la couche application */
+                fin = vers_application(message, paquet.lg_info);
+                verif_num = (verif_num + 1)%2;
+            }
+            vers_reseau(&reponse);
         }
-        vers_reseau(&reponse);
+        
     }
 
     printf("[TRP] Fin execution protocole transport.\n");

@@ -9,7 +9,7 @@ FICHIER_OUT fichiers/out.jpg
 # Initialisation reseau
 #-----------------------
 # Emetteur
-PROBA_PERTE_E 0
+PROBA_PERTE_E 0.3
 PROBA_ERREUR_E 0.3
 # Recepteur
 PROBA_PERTE_R 0

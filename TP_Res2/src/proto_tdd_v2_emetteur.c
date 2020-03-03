@@ -41,7 +41,7 @@ int main(int argc, char* argv[])
 
     /* lecture de donnees provenant de la couche application */
     de_application(message, &taille_msg);
-
+    paquet.num_seq = 0;
     /* tant que l'émetteur a des données à envoyer */
     while ( taille_msg != 0 ) {
 
@@ -51,27 +51,22 @@ int main(int argc, char* argv[])
         }
         paquet.lg_info = taille_msg;
         paquet.type = DATA;
-        paquet.num_seq = 0;
         paquet.somme_ctrl = generer_controle(paquet);
 
-        reponse.type = NACK;
-        while (reponse.type == NACK){
+        do{
             /* remise à la couche reseau */
+            depart_temporisateur(1,100);
             vers_reseau(&paquet);
-            depart_temporisateur(1,500);
             code_retour = attendre();
-            if (code_retour == -1){ // FIXME: Problème au niveau de l'image...
-                /* On sort de la boucle, en simulant un flag ACK */
-                arreter_temporisateur(1);
-                reponse.type = ACK;
-            }
-            /* de_reseau(&reponse); */
-            /* On attends plus de réponse de l'emetteur */
-        }
-        
+        } while (code_retour != -1);  /* tant que timeout */
+
+        arreter_temporisateur(1);
+        // reponse.type = ACK;
+        de_reseau(&reponse); // on vide le bufbuf
 
         /* lecture des donnees suivantes de la couche application */
         de_application(message, &taille_msg);
+        paquet.num_seq = (paquet.num_seq + 1)%2;
     }
 
     printf("[TRP] Fin execution protocole transfert de donnees (TDD).\n");
