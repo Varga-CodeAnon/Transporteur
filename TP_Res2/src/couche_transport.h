@@ -31,7 +31,8 @@ typedef struct paquet_s {
 /* Fonctions utilitaires couche transport */
 /* ************************************** */
 
-// TODO...
+uint8_t generer_controle(paquet_t p);
+int verifier_controle(paquet_t p);
 
 /*--------------------------------------*
  * Fonction d'inclusion dans la fenetre *

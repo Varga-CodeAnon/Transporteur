@@ -6,11 +6,28 @@
 /* Fonctions utilitaires couche transport */
 /* ************************************** */
 
-/* Ajouter ici vos fonctions utilitaires
- * (generer_controle, verifier_controle...)
- */
+/* Ajouter ici vos fonctions utilitaires */
+uint8_t generer_controle(paquet_t p){
+    uint8_t somme_ctrl = 0;
+    somme_ctrl ^= p.type;
+    somme_ctrl ^= p.num_seq;
+    somme_ctrl ^= p.lg_info;
+    for (int i=0; i<p.lg_info; i++){
+        somme_ctrl ^= p.info[i];
+    }
+    return somme_ctrl;
+}
 
 
+int verifier_controle(paquet_t p){
+    p.somme_ctrl ^= p.type;
+    p.somme_ctrl ^= p.num_seq;
+    p.somme_ctrl ^= p.lg_info;
+    for (int i=0; i<p.lg_info; i++){
+        p.somme_ctrl ^= p.info[i];
+    }
+    return (p.somme_ctrl == 0);
+}
 
 
 /* ======================================================================= */

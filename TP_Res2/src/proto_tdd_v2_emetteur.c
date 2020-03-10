@@ -8,6 +8,7 @@
 **************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "application.h"
 #include "couche_transport.h"
 #include "services_reseau.h"
@@ -53,12 +54,20 @@ int main(int argc, char* argv[])
         paquet.type = DATA;
         paquet.somme_ctrl = generer_controle(paquet);
 
+        int envoi = 0;
         do{
+            envoi++;
             /* remise à la couche reseau */
             depart_temporisateur(1,100);
             vers_reseau(&paquet);
             code_retour = attendre();
-        } while (code_retour != -1);  /* tant que timeout */
+        } while (code_retour != -1 && envoi < 25);  /* tant que timeout */
+
+        if (envoi == 25){
+            fprintf(stderr,"[!] Erreur : nb max d'envoi atteinds (25)\n    (press any key to exit)\n");
+            getchar();
+            exit(1);
+        }
 
         arreter_temporisateur(1);
         // reponse.type = ACK;
