@@ -34,17 +34,12 @@ int main(int argc, char* argv[])
 
         de_reseau(&paquet);
 
-        /* extraction des donnees du paquet recu */
-        for (int i=0; i<paquet.lg_info; i++) {
-            message[i] = paquet.info[i];
-        }
         if (!verifier_controle(paquet)){
             printf("[!] ERREUR\n");
-            reponse.type = ACK;
         }
         else {
             if (paquet.num_seq != verif_num){
-            printf("[!] DOUBLON\n");
+            printf("[!] DOUBLON\nverif_num %d   num_seq %d",verif_num,paquet.num_seq);
             reponse.type = ACK;
             /* On drop le paquet, mais on acquitte */
             }
@@ -52,7 +47,13 @@ int main(int argc, char* argv[])
                 reponse.type = ACK;
                 /* remise des données à la couche application */
                 fin = vers_application(message, paquet.lg_info);
-                verif_num = (verif_num + 1)%2;
+                verif_num = (verif_num + 1) % NUMEROTATION;
+                
+                /* extraction des donnees du paquet recu */
+                for (int i=0; i<paquet.lg_info; i++) {
+                    message[i] = paquet.info[i];
+                    // printf("COUCOU%d\n",i);
+                }
             }
             vers_reseau(&reponse);
         }
