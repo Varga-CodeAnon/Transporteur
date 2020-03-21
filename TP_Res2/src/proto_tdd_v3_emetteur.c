@@ -36,11 +36,11 @@ int main(int argc, char* argv[])
     /* lecture de donnees provenant de la couche application */
     borne_inf = 0;
     curseur = 0;
-    de_application(message, &taille_msg);
     /* tant que l'émetteur a des données à envoyer */
     while ( taille_msg != 0 ) {
         if (dans_fenetre(borne_inf,curseur,TAILLE_FEN))
         {   
+            de_application(message, &taille_msg);
             /* construction paquet */
             for (int i=0; i<taille_msg; i++) {
                 tableau_de_paquet[curseur].info[i] = message[i];
@@ -50,6 +50,13 @@ int main(int argc, char* argv[])
             tableau_de_paquet[curseur].num_seq = curseur;
             tableau_de_paquet[curseur].somme_ctrl = generer_controle(tableau_de_paquet[curseur]);
             /* ------------------- */
+            // /* construction paquet */
+            // for (int i=0; i<taille_msg; i++) {
+            //     paquet.info[i] = message[i];
+            // }
+            // paquet.lg_info = taille_msg;
+            // paquet.type = DATA;
+            // paquet.somme_ctrl = generer_controle(paquet);
 
             /* remise à la couche reseau */
             vers_reseau(&paquet);
@@ -57,7 +64,6 @@ int main(int argc, char* argv[])
                 depart_temporisateur(1,200); 
             }
             curseur = (curseur + 1)%TAILLE_FEN;
-            de_application(message, &taille_msg);
         }
         else {  /* On envoi tout sans attendre, puis une fois tout envoyé, on attend */
             // printf("YOOOOOOOSUUUUUUU\n");

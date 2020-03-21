@@ -12,16 +12,6 @@
 #include "couche_transport.h"
 #include "services_reseau.h"
 
-int verifier_controle(paquet_t p){
-    p.somme_ctrl ^= p.type;
-    p.somme_ctrl ^= p.num_seq;
-    p.somme_ctrl ^= p.lg_info;
-    for (int i=0; i<p.lg_info; i++){
-        p.somme_ctrl ^= p.info[i];
-    }
-    return (p.somme_ctrl == 0);
-}
-
 
 /* =============================== */
 /* Programme principal - récepteur */

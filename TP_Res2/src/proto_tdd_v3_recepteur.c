@@ -57,7 +57,6 @@ int main(int argc, char* argv[])
             }
             vers_reseau(&reponse);
         }
-        
     }
 
     printf("[TRP] Fin execution protocole transport.\n");
