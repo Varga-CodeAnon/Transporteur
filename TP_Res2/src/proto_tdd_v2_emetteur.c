@@ -8,6 +8,7 @@
 **************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include "application.h"
 #include "couche_transport.h"
 #include "services_reseau.h"
@@ -20,6 +21,7 @@ int main(int argc, char* argv[])
 {
     unsigned char message[MAX_INFO]; /* message de l'application */
     int taille_msg; /* taille du message */
+    int code_retour; /* code de retour de la fonction attendre */
     paquet_t paquet; /* paquet utilisé par le protocole */
     paquet_t reponse;
 
@@ -30,7 +32,7 @@ int main(int argc, char* argv[])
 
     /* lecture de donnees provenant de la couche application */
     de_application(message, &taille_msg);
-
+    paquet.num_seq = 0;
     /* tant que l'émetteur a des données à envoyer */
     while ( taille_msg != 0 ) {
 
@@ -40,20 +42,34 @@ int main(int argc, char* argv[])
         }
         paquet.lg_info = taille_msg;
         paquet.type = DATA;
-        paquet.num_seq = 0;
         paquet.somme_ctrl = generer_controle(paquet);
 
-        reponse.type = NACK;
-        while (reponse.type == NACK){
+        // /* ===================== */
+        // printf("data = %s\nlg_info = %d\ntype = %d\nsomme_ctrl = %d\n",paquet.info,paquet.lg_info,paquet.type,paquet.somme_ctrl);
+        // return 1;
+        // /* ===================== */
+        int envoi = 0;
+        do{
+            envoi++;
             /* remise à la couche reseau */
+            depart_temporisateur(1,100);
             vers_reseau(&paquet);
-            attendre();
-            de_reseau(&reponse);
+            code_retour = attendre();
+        } while (code_retour != -1 && envoi < 25);  /* tant que timeout */
+
+        if (envoi == 25){
+            fprintf(stderr,"[!] Erreur : nb max d'envoi atteinds (25)\n    (press any key to exit)\n");
+            getchar();
+            exit(1);
         }
-        
+
+        arreter_temporisateur(1);
+        // reponse.type = ACK;
+        de_reseau(&reponse); // on vide le bufbuf
 
         /* lecture des donnees suivantes de la couche application */
         de_application(message, &taille_msg);
+        paquet.num_seq = (paquet.num_seq + 1)%2;
     }
 
     printf("[TRP] Fin execution protocole transfert de donnees (TDD).\n");
