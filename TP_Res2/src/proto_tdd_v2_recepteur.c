@@ -33,7 +33,10 @@ int main(int argc, char* argv[])
         // attendre(); /* optionnel ici car de_reseau() fct bloquante */
 
         de_reseau(&paquet);
-
+        /* ===================== */
+        printf("data = %s\nlg_info = %d\ntype = %d\nsomme_ctrl = %d\n",paquet.info,paquet.lg_info,paquet.type,paquet.somme_ctrl);
+        return 1;
+        /* ===================== */
         /* extraction des donnees du paquet recu */
         for (int i=0; i<paquet.lg_info; i++) {
             message[i] = paquet.info[i];

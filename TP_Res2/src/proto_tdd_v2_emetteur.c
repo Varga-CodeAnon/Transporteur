@@ -44,6 +44,10 @@ int main(int argc, char* argv[])
         paquet.type = DATA;
         paquet.somme_ctrl = generer_controle(paquet);
 
+        // /* ===================== */
+        // printf("data = %s\nlg_info = %d\ntype = %d\nsomme_ctrl = %d\n",paquet.info,paquet.lg_info,paquet.type,paquet.somme_ctrl);
+        // return 1;
+        // /* ===================== */
         int envoi = 0;
         do{
             envoi++;
