@@ -13,9 +13,12 @@
 #include "services_reseau.h"
 
 // Côté récepteur :
-// au lieu de jeter les paquets corrects qui sont reçus hors séquence il faut les stocker en attendant de recevoir le premier paquet manquant.
-// Il vous faut donc un tableau de paquet comme côté émetteur et utiliser la fonction dans_fenetre
-// Le protocole est bien plus efficace que le go back n.
+// au lieu de jeter les paquets corrects qui sont reçus hors
+// séquence il faut les stocker en attendant de recevoir le 
+// premier paquet manquant.
+
+// => Il vous faut donc un tableau de paquet comme côté émetteur TODO:
+//    et utiliser la fonction dans_fenetre() TODO:
 
 /* =============================== */
 /* Programme principal - récepteur */
