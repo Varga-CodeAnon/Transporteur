@@ -8,7 +8,7 @@
 
 #ifndef __RESEAU_H__
 #define __RESEAU_H__
-#define TAILLE_FEN 4
+#define TAILLE_FEN 8
 #define NUMEROTATION 6
 #include "couche_transport.h" /* paquet_t */
 

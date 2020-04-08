@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 
             vers_reseau(&tableau_de_paquet[curseur]);
             
-            if (borne_inf == curseur){
+            if (borne_inf == curseur){  // On démarre le temporisateur pour la fenêtre d'emission
                 depart_temporisateur(1,50); 
             }
             curseur = (curseur + 1)%SEQ_NUM_SIZE;
