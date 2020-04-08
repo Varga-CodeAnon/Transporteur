@@ -13,6 +13,13 @@
 #include "couche_transport.h"
 #include "services_reseau.h"
 
+// Côté émetteur, il faut désormais un temporisateur par trame.
+// Par paquet pardon.
+// Lors de l'expiration d'un temporisateur on ne renvoi que le paquet correspondant et donc pas toute la fenêtre.
+// Quand on reçoit un ack, il ne vaut que pour ce paquet.
+// Donc il y a deux solutions :
+// - si ce n'est pas le premier paquet en attente d'ack, on met à vrai un booléen dans un tableau ack_recu.
+// - si c'est le premier paquet, on fait avancer la fenêtre tant qu'on le peut. C'est à dire pour ce paquet et pour tous ceux précédemment reçus (connus grâce au tableau ack_recu)
 
 /* =============================== */
 /* Programme principal - émetteur  */
