@@ -13,27 +13,27 @@
 #include "couche_transport.h"
 #include "services_reseau.h"
 
-// Côté émetteur, il faut désormais un temporisateur par paquet. TODO: OK!
-
+// Côté émetteur, il faut un temporisateur par paquet.
 // Lors de l'expiration d'un temporisateur on ne renvoi que le
-// paquet correspondant et donc pas toute la fenêtre /!\ TODO:
-
-// Quand on reçoit un ACK, il ne vaut que pour ce paquet.
-// Donc il y a deux solutions :
-// - si ce n'est pas le premier paquet en attente d'ack, on met à
-//   vrai un booléen (TODO:) dans un tableau ack_recu (TODO: OK! ).
-// - si c'est le premier paquet, on fait avancer la fenêtre tant
-//   qu'on le peut. C'est à dire pour ce paquet et pour tous ceux 
-//   précédemment reçus (connus grâce au tableau ack_recu) TODO:
+// paquet correspondant et donc pas toute la fenêtre /!\
+//
+// Quand on reçoit un ACK, il ne vaut que pour ce paquet
+// - si ce n'est pas le premier paquet en attente d'ACK, on met à
+//   vrai un booléen dans le tableau tab_ack_recu.
+// - si c'est le premier paquet, on fait avancer la fenêtre pour ce paquet et pour tous ceux
+//   précédemment reçus (connus grâce au tableau tab_ack_recu)
 
 /* =============================== */
 /* Programme principal - émetteur  */
 /* =============================== */
-int main(int argc, char* argv[])
+
+// FIXME: Programme non fonctionnel
+
+int main(int argc, char *argv[])
 {
     unsigned char message[MAX_INFO]; /* message de l'application */
-    int taille_msg; /* taille du message */
-    int code_retour; /* code de retour de la fonction attendre */
+    int taille_msg;                  /* taille du message */
+    int code_retour;                 /* code de retour de la fonction attendre */
     paquet_t reponse;
     paquet_t tableau_de_paquet[SEQ_NUM_SIZE]; /* fenêtre de 16 paquets */
     int borne_inf;
@@ -48,15 +48,15 @@ int main(int argc, char* argv[])
     /* lecture de donnees provenant de la couche application */
     borne_inf = 0;
     curseur = 0;
-    /* tant que l'émetteur a des données à envoyer */
     de_application(message, &taille_msg);
-    while ( taille_msg != 0 || borne_inf != curseur) {
-        
-        
-        if (dans_fenetre(borne_inf,curseur,TAILLE_FEN) && taille_msg)
-        {   
+    /* tant que l'émetteur a des données à envoyer */
+    while (taille_msg != 0 || borne_inf != curseur)
+    {
+        if (dans_fenetre(borne_inf, curseur, TAILLE_FEN) && taille_msg)
+        {
             /* construction paquet */
-            for (int i=0; i<taille_msg; i++) {
+            for (int i = 0; i < taille_msg; i++)
+            {
                 tableau_de_paquet[curseur].info[i] = message[i];
             }
             tableau_de_paquet[curseur].lg_info = taille_msg;
@@ -65,40 +65,45 @@ int main(int argc, char* argv[])
             tableau_de_paquet[curseur].somme_ctrl = generer_controle(tableau_de_paquet[curseur]);
 
             vers_reseau(&tableau_de_paquet[curseur]);
-            
-            depart_temporisateur(tableau_de_paquet[curseur].num_seq,50);  // on démarre un temporisateur par paquet.
-            
-            curseur = (curseur + 1)%SEQ_NUM_SIZE;
+
+            /* On démarre un temporisateur par paquet */
+            depart_temporisateur(tableau_de_paquet[curseur].num_seq, 50);
+
+            curseur = (curseur + 1) % SEQ_NUM_SIZE;
             de_application(message, &taille_msg);
         }
-        else {  /* Dès que curseur sort de la fenêtre, on envoi tout sans attendre, puis une fois tout envoyé, on attend */
+        else
+        { /* Dès que curseur sort de la fenêtre, on envoi tout sans attendre, puis une fois tout envoyé, on attend */
             code_retour = attendre();
-            if (code_retour == PAQUET_RECU){  /* Si on reçoit un ACK... */
+            if (code_retour == PAQUET_RECU)
+            { /* Si on reçoit un ACK... */
                 de_reseau(&reponse);
-                if (verifier_controle(reponse) && dans_fenetre(borne_inf,reponse.num_seq,TAILLE_FEN)){  /* ... et qu'il est conforme */
-                    if (ack_attendu == reponse.num_seq){  /* S'il correspond au paquet attendu */
+                if (verifier_controle(reponse) && dans_fenetre(borne_inf, reponse.num_seq, TAILLE_FEN))
+                { /* ... et qu'il est conforme */
+                    if (ack_attendu == reponse.num_seq)
+                    { /* S'il correspond au paquet attendu */
                         tab_ack_recu[reponse.num_seq] = 1;
-                        while (tab_ack_recu[ack_attendu]==1){ // tant que les acquittements attendu ont été reçu, on décale la fenêtre
-                            /* décalage de la fenêtre */
-                            
+                        while (tab_ack_recu[ack_attendu] == 1)
+                        { /* Tant que les acquittements attendu ont été reçu, on décale la fenêtre */
                             arreter_temporisateur(ack_attendu);
                             borne_inf = ack_attendu;
-                            ack_attendu = (ack_attendu+1) % SEQ_NUM_SIZE;
-                        }  
+                            ack_attendu = (ack_attendu + 1) % SEQ_NUM_SIZE;
+                        }
                     }
-                    else {  // Sinon on met à vrai le booléen dans tab_ack_recu
-                        printf("Aurevoir\n");
+                    else
+                    { /* Sinon, on met à vrai le booléen dans tab_ack_recu */
                         // arreter_temporisateur(reponse.num_seq);
                         tab_ack_recu[reponse.num_seq] = 1;
                     }
                 }
             }
-            else {
-                /* Cas du timeout : réemission du paquet manquant (selective repeat) */
+            else
+            {
+                /* Dans le cas du timeout : réemission du paquet manquant (selective repeat) */
                 int i = borne_inf;
-                depart_temporisateur(borne_inf,50);
+                depart_temporisateur(borne_inf, 50);
                 vers_reseau(&tableau_de_paquet[borne_inf]);
-                i = (i+1) % SEQ_NUM_SIZE;
+                i = (i + 1) % SEQ_NUM_SIZE;
             }
         }
     }

@@ -12,17 +12,19 @@
 #include "couche_transport.h"
 #include "services_reseau.h"
 
-// Côté récepteur :
-// au lieu de jeter les paquets corrects qui sont reçus hors
-// séquence il faut les stocker en attendant de recevoir le 
-// premier paquet manquant.
-
-// => Il vous faut donc un tableau de paquet comme côté émetteur TODO:
-//    et utiliser la fonction dans_fenetre() TODO:
+// Côté récepteur, il faut stocker les paquets corrects reçus dans le 
+// désordre en attendant de recevoir le premier paquet manquant.
+//
+// => On stockera ces paquets dans un tableau comme côté émetteur
+//    et on utilisera la fonction dans_fenetre() pour éviter les
+//    débordements tampons
 
 /* =============================== */
 /* Programme principal - récepteur */
 /* =============================== */
+
+// FIXME: Programme non fonctionnel
+
 int main(int argc, char *argv[])
 {
     unsigned char message[MAX_INFO]; /* message pour l'application */
@@ -34,14 +36,11 @@ int main(int argc, char *argv[])
     printf("[TRP] Initialisation reseau : OK.\n");
     printf("[TRP] Debut execution protocole transport.\n");
     paquet_t buffer[TAILLE_FEN];
-    int taille_buffer=0;
+    int taille_buffer = 0;
 
     /* tant que le récepteur reçoit des données */
     while (!fin)
     {
-
-        // attendre(); /* optionnel ici car de_reseau() fct bloquante */
-
         de_reseau(&paquet);
         if (verifier_controle(paquet))
         {
@@ -50,39 +49,32 @@ int main(int argc, char *argv[])
                 reponse.type = ACK;
                 verif_num = (verif_num + 1) % SEQ_NUM_SIZE;
 
-                /* extraction des donnees du paquet recu */
+                /* Extraction des donnees du paquet recu */
                 for (int i = 0; i < paquet.lg_info; i++)
                 {
                     message[i] = paquet.info[i];
-                    
                 }
-                                /* remise des données à la couche application */
+                /* Remise des données à la couche application */
                 fin = vers_application(message, paquet.lg_info);
 
-                if (taille_buffer != 0){  // On réitère pour vider le buffer TODO: a mettre en fonction
+                if (taille_buffer != 0)
+                { /* Si des paquets ont été stocké, on les transmets à la couche application */
                     do
                     {
-                        printf("Koalak!\n");
-                        paquet = buffer[taille_buffer-1];
-                        printf("Kaolak!\n");
+                        paquet = buffer[taille_buffer - 1];
                         reponse.type = ACK;
                         verif_num = (verif_num + 1) % SEQ_NUM_SIZE;
-
-                        /* extraction des donnees du paquet recu */
                         for (int i = 0; i < paquet.lg_info; i++)
                         {
                             message[i] = paquet.info[i];
-                            
                         }
-                                        /* remise des données à la couche application */
-                        
                         fin = vers_application(message, paquet.lg_info);
                         taille_buffer--;
                     } while (taille_buffer > 0);
-                    
                 }
             }
-            else {  /* On stocke le paquet dans un buffer */
+            else  /* Si on reçoit un paquet non attendu ... */
+            { /* ... On stocke le paquet dans un buffer */
                 buffer[taille_buffer] = paquet;
                 taille_buffer++;
             }
