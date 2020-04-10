@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
         if (verifier_controle(paquet))
         {
             if (paquet.num_seq == verif_num)
-            { /* On drop le paquet, mais on acquitte */
+            {
                 reponse.type = ACK;
                 verif_num = (verif_num + 1) % SEQ_NUM_SIZE;
 
@@ -44,9 +44,8 @@ int main(int argc, char *argv[])
                 for (int i = 0; i < paquet.lg_info; i++)
                 {
                     message[i] = paquet.info[i];
-                    
                 }
-                                /* remise des données à la couche application */
+                /* remise des données à la couche application */
                 fin = vers_application(message, paquet.lg_info);
             }
             reponse.type = ACK;
