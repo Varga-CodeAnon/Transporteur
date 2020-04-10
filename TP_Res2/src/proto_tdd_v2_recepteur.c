@@ -12,14 +12,13 @@
 #include "couche_transport.h"
 #include "services_reseau.h"
 
-
 /* =============================== */
 /* Programme principal - récepteur */
 /* =============================== */
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     unsigned char message[MAX_INFO]; /* message pour l'application */
-    paquet_t paquet; /* paquet utilisé par le protocole */
+    paquet_t paquet;                 /* paquet utilisé par le protocole */
     paquet_t reponse;
     int fin = 0; /* condition d'arrêt */
     init_reseau(RECEPTION);
@@ -28,38 +27,39 @@ int main(int argc, char* argv[])
     printf("[TRP] Debut execution protocole transport.\n");
 
     /* tant que le récepteur reçoit des données */
-    while ( !fin ) {
-
+    while (!fin)
+    {
         // attendre(); /* optionnel ici car de_reseau() fct bloquante */
 
         de_reseau(&paquet);
-        /* ===================== */
-        printf("data = %s\nlg_info = %d\ntype = %d\nsomme_ctrl = %d\n",paquet.info,paquet.lg_info,paquet.type,paquet.somme_ctrl);
-        return 1;
-        /* ===================== */
+        
         /* extraction des donnees du paquet recu */
-        for (int i=0; i<paquet.lg_info; i++) {
+        for (int i = 0; i < paquet.lg_info; i++)
+        {
             message[i] = paquet.info[i];
         }
-        if (!verifier_controle(paquet)){
+        if (!verifier_controle(paquet))
+        {
             printf("[!] ERREUR\n");
             reponse.type = ACK;
         }
-        else {
-            if (paquet.num_seq != verif_num){
-            printf("[!] DOUBLON\n");
-            reponse.type = ACK;
-            /* On drop le paquet, mais on acquitte */
+        else
+        {
+            if (paquet.num_seq != verif_num)
+            {
+                printf("[!] DOUBLON\n");
+                reponse.type = ACK;
+                /* On drop le paquet, mais on acquitte */
             }
-            else {
+            else
+            {
                 reponse.type = ACK;
                 /* remise des données à la couche application */
                 fin = vers_application(message, paquet.lg_info);
-                verif_num = (verif_num + 1)%2;
+                verif_num = (verif_num + 1) % 2;
             }
             vers_reseau(&reponse);
         }
-        
     }
 
     printf("[TRP] Fin execution protocole transport.\n");

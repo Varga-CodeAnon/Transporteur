@@ -33,6 +33,8 @@ int main(int argc, char *argv[])
     int verif_num = 0;
     printf("[TRP] Initialisation reseau : OK.\n");
     printf("[TRP] Debut execution protocole transport.\n");
+    paquet_t buffer[TAILLE_FEN];
+    int taille_buffer=0;
 
     /* tant que le récepteur reçoit des données */
     while (!fin)
@@ -44,7 +46,7 @@ int main(int argc, char *argv[])
         if (verifier_controle(paquet))
         {
             if (paquet.num_seq == verif_num)
-            { /* On drop le paquet, mais on acquitte */
+            {
                 reponse.type = ACK;
                 verif_num = (verif_num + 1) % SEQ_NUM_SIZE;
 
@@ -56,6 +58,33 @@ int main(int argc, char *argv[])
                 }
                                 /* remise des données à la couche application */
                 fin = vers_application(message, paquet.lg_info);
+
+                if (taille_buffer != 0){  // On réitère pour vider le buffer TODO: a mettre en fonction
+                    do
+                    {
+                        printf("Koalak!\n");
+                        paquet = buffer[taille_buffer-1];
+                        printf("Kaolak!\n");
+                        reponse.type = ACK;
+                        verif_num = (verif_num + 1) % SEQ_NUM_SIZE;
+
+                        /* extraction des donnees du paquet recu */
+                        for (int i = 0; i < paquet.lg_info; i++)
+                        {
+                            message[i] = paquet.info[i];
+                            
+                        }
+                                        /* remise des données à la couche application */
+                        
+                        fin = vers_application(message, paquet.lg_info);
+                        taille_buffer--;
+                    } while (taille_buffer > 0);
+                    
+                }
+            }
+            else {  /* On stocke le paquet dans un buffer */
+                buffer[taille_buffer] = paquet;
+                taille_buffer++;
             }
             reponse.type = ACK;
             reponse.lg_info = 0;

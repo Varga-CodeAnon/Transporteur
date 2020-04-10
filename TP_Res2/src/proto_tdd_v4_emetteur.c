@@ -66,7 +66,7 @@ int main(int argc, char* argv[])
 
             vers_reseau(&tableau_de_paquet[curseur]);
             
-            depart_temporisateur(curseur,50);  // on démarre un temporisateur par paquet.
+            depart_temporisateur(tableau_de_paquet[curseur].num_seq,50);  // on démarre un temporisateur par paquet.
             
             curseur = (curseur + 1)%SEQ_NUM_SIZE;
             de_application(message, &taille_msg);
@@ -80,13 +80,15 @@ int main(int argc, char* argv[])
                         tab_ack_recu[reponse.num_seq] = 1;
                         while (tab_ack_recu[ack_attendu]==1){ // tant que les acquittements attendu ont été reçu, on décale la fenêtre
                             /* décalage de la fenêtre */
+                            
                             arreter_temporisateur(ack_attendu);
                             borne_inf = ack_attendu;
                             ack_attendu = (ack_attendu+1) % SEQ_NUM_SIZE;
                         }  
                     }
                     else {  // Sinon on met à vrai le booléen dans tab_ack_recu
-                        arreter_temporisateur(reponse.num_seq);
+                        printf("Aurevoir\n");
+                        // arreter_temporisateur(reponse.num_seq);
                         tab_ack_recu[reponse.num_seq] = 1;
                     }
                 }
